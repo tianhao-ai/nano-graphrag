@@ -12,7 +12,6 @@ from tenacity import (
     retry_if_exception_type,
 )
 import os
-
 from ._utils import compute_args_hash, wrap_embedding_func_with_attrs
 from .base import BaseKVStorage
 
@@ -43,8 +42,8 @@ def get_amazon_bedrock_async_client_instance():
 
 
 @retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def openai_complete_if_cache(
@@ -76,8 +75,8 @@ async def openai_complete_if_cache(
 
 
 @retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def amazon_bedrock_complete_if_cache(
@@ -155,7 +154,7 @@ async def gpt_4o_complete(
     prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:
     return await openai_complete_if_cache(
-        "gpt-4o",
+        "gpt-4o-2024-08-06",
         prompt,
         system_prompt=system_prompt,
         history_messages=history_messages,
@@ -177,8 +176,8 @@ async def gpt_4o_mini_complete(
 
 @wrap_embedding_func_with_attrs(embedding_dim=1024, max_token_size=8192)
 @retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def amazon_bedrock_embedding(texts: list[str]) -> np.ndarray:
@@ -206,8 +205,8 @@ async def amazon_bedrock_embedding(texts: list[str]) -> np.ndarray:
 
 @wrap_embedding_func_with_attrs(embedding_dim=1536, max_token_size=8192)
 @retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def openai_embedding(texts: list[str]) -> np.ndarray:
@@ -219,8 +218,8 @@ async def openai_embedding(texts: list[str]) -> np.ndarray:
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def azure_openai_complete_if_cache(
@@ -282,8 +281,8 @@ async def azure_gpt_4o_mini_complete(
 
 @wrap_embedding_func_with_attrs(embedding_dim=1536, max_token_size=8192)
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(3),  # 最多重试3次或30秒
+    wait=wait_exponential(multiplier=2, min=4, max=60),  # 更保守的等待时间
     retry=retry_if_exception_type((RateLimitError, APIConnectionError)),
 )
 async def azure_openai_embedding(texts: list[str]) -> np.ndarray:
